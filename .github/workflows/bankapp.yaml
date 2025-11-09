@@ -5,6 +5,7 @@ on:
     branches:
       - git-actions
       - Main
+      - main
 
 jobs:
   build-deploy:
