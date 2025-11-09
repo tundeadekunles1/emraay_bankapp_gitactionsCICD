@@ -1,12 +1,3 @@
-name: Build and Deploy Emraay Bank App
-
-on:
-  push:
-    branches:
-      - git-actions
-      - Main
-      - main
-
 jobs:
   build-deploy:
     runs-on: ubuntu-latest
@@ -14,6 +5,7 @@ jobs:
     env:
       MAVEN_USERNAME: ${{ secrets.NEXUS_USERNAME }}
       MAVEN_PASSWORD: ${{ secrets.NEXUS_PASSWORD }}
+      SSH_PRIVATE_KEY: ${{ secrets.EC2_SSH_KEY }}
 
     steps:
     - name: Checkout code
@@ -34,19 +26,12 @@ jobs:
         echo "<settings><servers><server><id>nexus</id><username>${MAVEN_USERNAME}</username><password>${MAVEN_PASSWORD}</password></server></servers></settings>" > ~/.m2/settings.xml
         mvn deploy
 
-    - name: Deploy to Tomcat via SCP
-      run: |
-         scp -i key.pem -o StrictHostKeyChecking=no target/emraay-bank-app.war ubuntu@15.223.177.105:/var/lib/tomcat10/webapps/
-         ssh -i key.pem -o StrictHostKeyChecking=no ubuntu@15.223.177.105 "sudo systemctl restart tomcat10"
-
-
-      env:
-        SSH_PRIVATE_KEY: ${{ secrets.EC2_SSH_KEY }}
-
     - name: Setup SSH key
       run: |
         echo "$SSH_PRIVATE_KEY" > key.pem
         chmod 600 key.pem
-        eval "$(ssh-agent -s)"
-        ssh-add key.pem
 
+    - name: Deploy to Tomcat via SCP
+      run: |
+        scp -i key.pem -o StrictHostKeyChecking=no target/emraay-bank-app.war ubuntu@15.223.177.105:/var/lib/tomcat10/webapps/
+        ssh -i key.pem -o StrictHostKeyChecking=no ubuntu@15.223.177.105 "sudo systemctl restart tomcat10"
