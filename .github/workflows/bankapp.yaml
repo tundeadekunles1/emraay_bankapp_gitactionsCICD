@@ -40,9 +40,8 @@ jobs:
         echo "$SSH_PRIVATE_KEY" > key.pem
         chmod 600 key.pem
 
+  
     - name: Deploy to Tomcat via SCP
-      run: |
-  -name: Deploy to Tomcat via SCP
   run: |
     scp -i key.pem -o StrictHostKeyChecking=no target/emraay-bank-app.war ubuntu@15.223.177.105:/home/ubuntu/
     ssh -i key.pem -o StrictHostKeyChecking=no ubuntu@15.223.177.105 "sudo mv /home/ubuntu/emraay-bank-app.war /var/lib/tomcat10/webapps/ && sudo systemctl restart tomcat10"
