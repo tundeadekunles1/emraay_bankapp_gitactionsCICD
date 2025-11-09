@@ -36,8 +36,8 @@ jobs:
 
     - name: Deploy to Tomcat via SCP
       run: |
-        scp -o StrictHostKeyChecking=no target/emraay-bank-app.war ubuntu@16.52.166.151:/var/lib/tomcat10/webapps/
-        ssh -o StrictHostKeyChecking=no ubuntu@16.52.166.151 "sudo systemctl restart tomcat10"
+        scp -o StrictHostKeyChecking=no target/emraay-bank-app.war ubuntu@15.223.177.105 :/var/lib/tomcat10/webapps/
+        ssh -o StrictHostKeyChecking=no ubuntu@15.223.177.105 "sudo systemctl restart tomcat10"
       env:
         SSH_PRIVATE_KEY: ${{ secrets.EC2_SSH_KEY }}
 
