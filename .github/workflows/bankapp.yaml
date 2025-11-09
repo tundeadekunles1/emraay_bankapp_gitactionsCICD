@@ -1,0 +1,49 @@
+name: Build and Deploy Emraay Bank App
+
+on:
+  push:
+    branches:
+      - git-actions
+      - Main
+
+jobs:
+  build-deploy:
+    runs-on: ubuntu-latest
+
+    env:
+      MAVEN_USERNAME: ${{ secrets.NEXUS_USERNAME }}
+      MAVEN_PASSWORD: ${{ secrets.NEXUS_PASSWORD }}
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v3
+
+    - name: Set up Java
+      uses: actions/setup-java@v3
+      with:
+        distribution: 'temurin'
+        java-version: '17'
+
+    - name: Build with Maven
+      run: mvn clean package
+
+    - name: Deploy to Nexus
+      run: |
+        mkdir -p ~/.m2
+        echo "<settings><servers><server><id>nexus</id><username>${MAVEN_USERNAME}</username><password>${MAVEN_PASSWORD}</password></server></servers></settings>" > ~/.m2/settings.xml
+        mvn deploy
+
+    - name: Deploy to Tomcat via SCP
+      run: |
+        scp -o StrictHostKeyChecking=no target/emraay-bank-app.war ubuntu@3.99.180.234:/var/lib/tomcat10/webapps/
+        ssh -o StrictHostKeyChecking=no ubuntu@3.99.180.234 "sudo systemctl restart tomcat10"
+      env:
+        SSH_PRIVATE_KEY: ${{ secrets.EC2_SSH_KEY }}
+
+    - name: Setup SSH key
+      run: |
+        echo "$SSH_PRIVATE_KEY" > key.pem
+        chmod 600 key.pem
+        eval "$(ssh-agent -s)"
+        ssh-add key.pem
+
